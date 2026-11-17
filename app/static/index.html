@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevOps Todo | Monitored API & Dashboard</title>
+  <title>OpsPulse | DevOps Incident & Reliability Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -11,83 +11,111 @@
 </head>
 <body>
   <div class="app-layout">
-    <!-- Navigation / Header -->
+    <!-- Top Header -->
     <header class="top-nav">
       <div class="nav-brand">
         <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
           </svg>
         </div>
         <div class="brand-text">
-          <h1>DevOps Todo</h1>
-          <span class="subtext">FastAPI &bull; Prometheus &bull; Grafana</span>
+          <h1>OpsPulse <span class="badge-version">v2.0</span></h1>
+          <span class="subtext">Incident &bull; SRE Probes &bull; Observability</span>
         </div>
       </div>
 
       <div class="nav-controls">
-        <div id="health-indicator" class="status-badge status-checking">
+        <div id="health-indicator" class="status-badge status-checking" title="Backend Health Check">
           <span class="status-dot"></span>
-          <span id="health-text" class="status-label">Checking API...</span>
+          <span id="health-text" class="status-label">Checking...</span>
         </div>
+
+        <button id="btn-security" class="nav-btn-icon" title="API Key & Privacy Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span id="key-active-dot" class="key-indicator"></span>
+        </button>
 
         <nav class="external-links">
           <a href="/docs" target="_blank" rel="noopener noreferrer" class="nav-link" title="Swagger Interactive API Docs">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            <span>API Docs</span>
+            <span>Docs</span>
           </a>
           <a href="/metrics" target="_blank" rel="noopener noreferrer" class="nav-link" title="Raw Prometheus Metrics">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 20V10"></path>
-              <path d="M12 20V4"></path>
-              <path d="M6 20v-6"></path>
-            </svg>
             <span>Metrics</span>
           </a>
           <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" class="nav-link" title="Prometheus UI">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
             <span>Prometheus</span>
           </a>
           <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="nav-link highlight" title="Grafana Dashboards">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="3" y1="9" x2="21" y2="9"></line>
-              <line x1="9" y1="21" x2="9" y2="9"></line>
-            </svg>
             <span>Grafana</span>
           </a>
         </nav>
       </div>
     </header>
 
+    <!-- Navigation Hub Tabs -->
+    <nav class="main-tabs">
+      <button class="tab-btn active" data-tab="tab-tasks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>Incidents & Tasks</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-probes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        <span>Service Probes (Uptime)</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-observability">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="12 6 12 12 14 14"></polygon>
+        </svg>
+        <span>DevOps Simulation & Backup</span>
+      </button>
+    </nav>
+
     <!-- Main Content Area -->
     <main class="main-content">
-      <!-- Quick Observability & Status Grid -->
+      <!-- KPI Stats Summary -->
       <section class="metrics-grid">
         <div class="metric-card">
           <div class="metric-icon total">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
           </div>
           <div class="metric-info">
-            <span class="metric-label">Total Todos</span>
+            <span class="metric-label">Total Items</span>
             <span id="metric-total" class="metric-value">0</span>
           </div>
         </div>
 
         <div class="metric-card">
+          <div class="metric-icon p0-card">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">P0 / P1 Critical</span>
+            <span id="metric-critical" class="metric-value">0</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
           <div class="metric-icon pending">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 8 14"></polyline>
             </svg>
@@ -100,92 +128,181 @@
 
         <div class="metric-card">
           <div class="metric-icon completed">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
           </div>
           <div class="metric-info">
-            <span class="metric-label">Completed</span>
+            <span class="metric-label">Resolved</span>
             <span id="metric-completed" class="metric-value">0</span>
-          </div>
-        </div>
-
-        <div class="metric-card traffic-card">
-          <div class="traffic-content">
-            <div class="traffic-text">
-              <span class="metric-label">Traffic Generator</span>
-              <span class="traffic-desc">Test Prometheus & Grafana alerts</span>
-            </div>
-            <button id="btn-traffic" class="btn btn-secondary btn-sm" title="Sends 25 API requests in rapid succession">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-              </svg>
-              <span>Simulate Traffic</span>
-            </button>
-          </div>
-          <div id="traffic-progress" class="traffic-progress-bar">
-            <div id="traffic-progress-fill" class="traffic-progress-fill"></div>
           </div>
         </div>
       </section>
 
-      <!-- Task Management Card -->
-      <section class="todo-panel">
-        <!-- New Task Form -->
-        <form id="todo-form" class="todo-form">
-          <div class="input-wrapper">
-            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
-            <input
-              type="text"
-              id="todo-input"
-              class="todo-input"
-              placeholder="What needs to be done? (e.g., Configure Alertmanager, Write unit tests...)"
-              autocomplete="off"
-              maxlength="200"
-              required
-            />
-          </div>
-          <button type="submit" id="btn-add" class="btn btn-primary">
-            <span>Add Task</span>
-          </button>
-        </form>
+      <!-- TAB 1: Tasks & Incidents -->
+      <section id="tab-tasks" class="tab-panel active">
+        <div class="card-panel">
+          <!-- Creation Form -->
+          <form id="todo-form" class="incident-form">
+            <div class="form-row-main">
+              <input
+                type="text"
+                id="todo-input"
+                class="form-input"
+                placeholder="Incident or task title (e.g., Database connection pool exhaustion, Rotate TLS certs...)"
+                maxlength="200"
+                required
+              />
+              <button type="submit" class="btn btn-primary">
+                <span>Create Ticket</span>
+              </button>
+            </div>
 
-        <!-- Filter Bar & Actions -->
-        <div class="filter-bar">
-          <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all">All</button>
-            <button class="filter-tab" data-filter="active">Active</button>
-            <button class="filter-tab" data-filter="completed">Completed</button>
+            <div class="form-row-meta">
+              <div class="meta-field">
+                <label for="todo-priority">Priority</label>
+                <select id="todo-priority" class="form-select">
+                  <option value="P0">P0 - Critical (Outage)</option>
+                  <option value="P1">P1 - High Priority</option>
+                  <option value="P2" selected>P2 - Medium</option>
+                  <option value="P3">P3 - Low</option>
+                </select>
+              </div>
+
+              <div class="meta-field">
+                <label for="todo-category">Category</label>
+                <select id="todo-category" class="form-select">
+                  <option value="Incident">Incident</option>
+                  <option value="Infrastructure">Infrastructure</option>
+                  <option value="Deployment">Deployment</option>
+                  <option value="Security">Security</option>
+                  <option value="Bug">Bug</option>
+                  <option value="General" selected>General</option>
+                </select>
+              </div>
+
+              <div class="meta-field flex-grow">
+                <label for="todo-desc">Description / Runbook (Optional)</label>
+                <input
+                  type="text"
+                  id="todo-desc"
+                  class="form-input-sm"
+                  placeholder="Root cause, runbook links, or remediation steps..."
+                  maxlength="500"
+                />
+              </div>
+            </div>
+          </form>
+
+          <!-- Filter & Search Controls -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="active">Active</button>
+                <button class="filter-tab" data-filter="completed">Resolved</button>
+              </div>
+
+              <select id="filter-priority-select" class="form-select-sm">
+                <option value="all">All Priorities</option>
+                <option value="P0">P0 Only</option>
+                <option value="P1">P1 Only</option>
+                <option value="P2">P2 Only</option>
+                <option value="P3">P3 Only</option>
+              </select>
+            </div>
+
+            <span id="items-left" class="filter-stats">0 active</span>
           </div>
-          <div class="filter-stats">
-            <span id="items-left">0 items left</span>
+
+          <!-- Items List -->
+          <div class="todo-list-container">
+            <div id="loading-state" class="state-placeholder hidden">
+              <div class="spinner"></div>
+              <p>Synchronizing SQLite database...</p>
+            </div>
+
+            <div id="empty-state" class="state-placeholder hidden">
+              <h3>No items found</h3>
+              <p id="empty-state-msg">No tasks match your current filter.</p>
+            </div>
+
+            <ul id="todo-list" class="todo-list"></ul>
           </div>
         </div>
+      </section>
 
-        <!-- Task List -->
-        <div class="todo-list-container">
-          <div id="loading-state" class="state-placeholder hidden">
-            <div class="spinner"></div>
-            <p>Syncing with API...</p>
-          </div>
-
-          <div id="empty-state" class="state-placeholder hidden">
-            <div class="empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 11l3 3L22 4"></path>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
+      <!-- TAB 2: Service Health Probes (Synthetic Uptime) -->
+      <section id="tab-probes" class="tab-panel">
+        <div class="card-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Synthetic Health Probes</h2>
+              <p class="section-desc">Actively monitor internal services & APIs. Generates real Prometheus latency histograms & up gauges.</p>
             </div>
-            <h3>No tasks here</h3>
-            <p id="empty-state-msg">Your todo list is clear! Add your first DevOps task above.</p>
+            <button id="btn-check-all-probes" class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"></path>
+                <path d="M1 20v-6h6"></path>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span>Ping All Probes</span>
+            </button>
           </div>
 
-          <ul id="todo-list" class="todo-list"></ul>
+          <!-- Add Probe Form -->
+          <form id="probe-form" class="probe-form">
+            <input type="text" id="probe-name" class="form-input" placeholder="Service Name (e.g. GitHub API, Local App)" required />
+            <input type="url" id="probe-url" class="form-input" placeholder="Endpoint URL (e.g. https://api.github.com, http://localhost:8000/health)" required />
+            <button type="submit" class="btn btn-primary">Add Probe</button>
+          </form>
+
+          <!-- Probe List -->
+          <div id="probe-list-container" class="probe-list-container">
+            <ul id="probe-list" class="probe-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Observability, Simulation & Backup -->
+      <section id="tab-observability" class="tab-panel">
+        <div class="card-panel">
+          <div class="panel-header">
+            <div>
+              <h2>DevOps Traffic Simulation & Disaster Recovery</h2>
+              <p class="section-desc">Generate realistic traffic spikes to test Prometheus alert rules, and export data for disaster recovery.</p>
+            </div>
+          </div>
+
+          <div class="sim-grid">
+            <div class="sim-card">
+              <h3>Prometheus Traffic Simulator</h3>
+              <p>Sends bursts of asynchronous traffic to trigger Prometheus request rate counters and latency histograms.</p>
+              <button id="btn-traffic" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span>Simulate 30 Requests</span>
+              </button>
+              <div id="traffic-progress" class="traffic-progress-bar">
+                <div id="traffic-progress-fill" class="traffic-progress-fill"></div>
+              </div>
+            </div>
+
+            <div class="sim-card">
+              <h3>Disaster Recovery & Export</h3>
+              <p>Download a complete snapshot of all incidents, tasks, and health probe states in JSON format.</p>
+              <button id="btn-export" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export JSON Backup</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -193,16 +310,50 @@
     <!-- Footer -->
     <footer class="app-footer">
       <p>
-        Monitored FastAPI Todo Application &bull; Metrics exposed at
-        <code>/metrics</code>
+        OpsPulse SRE Platform &bull; SQLite WAL Persistence &bull; Prometheus Telemetry at <code>/metrics</code>
       </p>
     </footer>
+  </div>
+
+  <!-- Security & Privacy Settings Modal -->
+  <div id="security-modal" class="modal-backdrop hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Security & Privacy Configuration</h3>
+        <button id="btn-close-modal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Sensitive operations (create, update, delete, probe execution) can be protected with an API Key.
+          All database files and secrets are stored locally and excluded from git.
+        </p>
+
+        <div class="form-field">
+          <label for="api-key-input">API Key (Saved in browser localStorage):</label>
+          <input
+            type="password"
+            id="api-key-input"
+            class="form-input"
+            placeholder="Enter API_KEY if configured in .env (or leave empty for open dev mode)"
+          />
+        </div>
+
+        <div class="privacy-checklist">
+          <div class="check-item">&#10003; SQLite database excluded from Git (.gitignore)</div>
+          <div class="check-item">&#10003; Environment variables loaded from local .env</div>
+          <div class="check-item">&#10003; Security headers enforced (nosniff, SAMEORIGIN, CSP)</div>
+          <div class="check-item">&#10003; Optional METRICS_TOKEN protection for Prometheus</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-key" class="btn btn-primary">Save Key</button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-  <!-- Application Script -->
   <script src="/static/app.js"></script>
 </body>
 </html>

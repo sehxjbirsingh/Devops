@@ -6,6 +6,10 @@ venv/
 .github/
 .pytest_cache/
 .ruff_cache/
+.env
+*.db
+*.sqlite
+data/
 tests/
 monitoring/
 docker-compose.yml

@@ -7,3 +7,7 @@ venv/
 .env
 *.egg-info/
 .DS_Store
+*.db
+*.sqlite
+*.sqlite3
+data/

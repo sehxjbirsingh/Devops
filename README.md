@@ -1,147 +1,148 @@
-# Monitored FastAPI App with CI/CD
+# OpsPulse: DevOps Incident & Reliability Command Center
 
-A small Todo REST API built with **FastAPI**, packaged with **Docker**, monitored with **Prometheus + Grafana**, and shipped through a **GitHub Actions** CI/CD pipeline.
+A production-ready **Incident Management, SRE Health Prober & Observability Platform** built with **FastAPI**, **SQLite WAL persistence**, **Prometheus & Grafana**, packaged with **Docker**, and shipped through a **GitHub Actions CI/CD** pipeline.
 
-## Architecture
+---
+
+## 🎯 Real-World Problem Solved
+
+Traditional demo Todo apps are toy projects with in-memory state that vanishes on restart and lack security. 
+
+**OpsPulse** bridges the gap between **SRE Incident Response**, **Deployment Runbooks**, and **Infrastructure Observability**:
+1. **Incident & Task Triage**: Track operational tickets with priority levels (`P0 - Critical Outage`, `P1 - High`, `P2 - Medium`, `P3 - Low`) and domain categories (`Incident`, `Infrastructure`, `Deployment`, `Security`, `Bug`).
+2. **Synthetic Health Probes (Uptime Monitoring)**: Actively pings internal and external HTTP/HTTPS services, recording response latencies and health status directly into Prometheus telemetry (`service_probe_duration_seconds`, `service_probe_up`).
+3. **Reliable Persistence**: Uses an embedded SQLite database with **Write-Ahead Logging (WAL)** and transaction locks, ensuring zero data loss across container or server restarts.
+4. **Traffic Simulation & Chaos Testing**: Built-in traffic generator fires bursts of API calls to evaluate Prometheus scrape targets and trigger Grafana alerts under load.
+5. **Disaster Recovery**: One-click JSON backup export (`GET /export`) for operational postmortems and reporting.
+
+---
+
+## 🔒 Security & Privacy by Design
+
+OpsPulse follows strict security and privacy standards to protect sensitive infrastructure:
+- **Zero-Exposure Secrets**: All secrets and configurations are loaded via environment variables (`.env`). A `.env.example` template is provided; `.env` is strictly git-ignored.
+- **API Key Protection**: Mutating endpoints (`POST`, `PUT`, `DELETE`, probe executions) can be protected by configuring `API_KEY` in `.env`. Clients supply `X-API-Key` header or enter it in the UI's built-in Security modal.
+- **Protected Telemetry**: Optional `METRICS_TOKEN` allows restricting raw Prometheus metrics scraping to authorized monitoring agents only (`Authorization: Bearer <METRICS_TOKEN>`).
+- **Database Privacy**: Database files (`*.db`, `data/`) are excluded from git commits and Docker context.
+- **Security Response Headers**: Every response enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+
+---
+
+## 🏛️ Architecture
 
 ```
- Developer ──push──▶ GitHub ──▶ GitHub Actions
-                                  │ 1. ruff lint
-                                  │ 2. pytest
-                                  │ 3. build Docker image
-                                  │ 4. push to Docker Hub
+ Developer ──push──▶ GitHub ──▶ GitHub Actions (ruff lint ➔ pytest ➔ Docker build & push)
+                                  │
                                   ▼
-                              (optional) SSH deploy to server
+                              Cloud / Server Deploy (Render / Docker Hub)
 
- Running stack (docker compose):
-
-   client ──▶ FastAPI app :8000 ──/metrics──▶ Prometheus :9090 ──▶ Grafana :3000
-                                                   │
-                                                   └── alert rules (AppDown, HighErrorRate, HighLatency)
+ Running Stack:
+   User / Browser ──▶ OpsPulse UI & API (:8000) ──▶ SQLite WAL (data/devops.db)
+                             │
+                      /metrics (telemetry)
+                             ▼
+                         Prometheus (:9090) ──▶ Grafana Dashboard (:3000)
+                             │
+                             └── Alerts: AppDown, HighLatency, HighErrorRate
 ```
 
-## Project structure
+---
+
+## 📁 Project Structure
 
 ```
 .
 ├── app/
-│   ├── main.py                  # FastAPI app, /health and /metrics endpoints
-│   └── static/                  # Responsive web frontend UI (HTML, CSS, JS)
-│       ├── index.html
-│       ├── style.css
-│       └── app.js
-├── tests/test_main.py           # pytest tests
-├── Dockerfile                   # production image (non-root, healthcheck)
-├── docker-compose.yml           # app + Prometheus + Grafana
+│   ├── config.py                # Environment variables & secret management
+│   ├── database.py              # SQLite WAL persistence layer & queries
+│   ├── models.py                # Pydantic schemas with P0-P3 priorities
+│   ├── main.py                  # FastAPI app, security headers, endpoints
+│   └── static/                  # Single Page Application
+│       ├── index.html           # SRE Dashboard & Incident Hub UI
+│       ├── style.css            # Dark-mode responsive interface
+│       └── app.js               # Reactive client with health probes & simulation
+├── tests/test_main.py           # Comprehensive pytest suite
+├── Dockerfile                   # Non-root secure production image
+├── docker-compose.yml           # Complete stack (App + Prometheus + Grafana)
+├── render.yaml                  # 1-Click free cloud deployment configuration
+├── .env.example                 # Configuration template for secrets
 ├── monitoring/
-│   ├── prometheus/              # scrape config + alert rules
-│   └── grafana/                 # auto-provisioned datasource + dashboard
-└── .github/workflows/ci-cd.yml  # CI/CD pipeline
+│   ├── prometheus/              # Prometheus scraping configuration & alert rules
+│   └── grafana/                 # Pre-provisioned dashboards & datasource
+└── .github/workflows/ci-cd.yml  # Automated CI/CD pipeline
 ```
 
-## API & UI endpoints
+---
 
-| Method | Path          | Description                    |
-|--------|---------------|--------------------------------|
-| GET    | `/`           | Web Frontend (Single Page App) |
-| GET    | `/health`     | Health check                   |
-| GET    | `/metrics`    | Prometheus metrics     |
-| POST   | `/todos`      | Create a todo          |
-| GET    | `/todos`      | List todos             |
-| GET    | `/todos/{id}` | Get one todo           |
-| PUT    | `/todos/{id}` | Update title / done    |
-| DELETE | `/todos/{id}` | Delete a todo          |
+## 🔌 API & UI Endpoints
 
-Interactive docs: http://localhost:8000/docs
+| Method | Path                    | Auth Required | Description                                       |
+|--------|-------------------------|---------------|---------------------------------------------------|
+| GET    | `/`                     | No            | SRE Command Center Web UI                         |
+| GET    | `/health`               | No            | Health check & liveness probe                     |
+| GET    | `/metrics`              | Optional*     | Prometheus metrics (*protected if METRICS_TOKEN)  |
+| GET    | `/todos`                | No            | List all incidents and tasks                      |
+| POST   | `/todos`                | Yes*          | Create an incident/task (*if API_KEY configured)   |
+| GET    | `/todos/{id}`           | No            | Retrieve a specific incident                      |
+| PUT    | `/todos/{id}`           | Yes*          | Update priority, category, title, or status       |
+| DELETE | `/todos/{id}`           | Yes*          | Delete an incident/task                           |
+| GET    | `/probes`               | No            | List all synthetic service health probes          |
+| POST   | `/probes`               | Yes*          | Add a new service probe                           |
+| POST   | `/probes/{id}/check`    | Yes*          | Execute an immediate synthetic health ping        |
+| DELETE | `/probes/{id}`          | Yes*          | Remove a service probe                            |
+| GET    | `/export`               | Yes*          | Disaster recovery JSON backup export              |
 
-## Run locally (without Docker)
+Interactive Swagger Documentation: **http://localhost:8000/docs**
+
+---
+
+## 🚀 Getting Started
+
+### 1. Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/sehxjbirsingh/Devops.git
+cd Devops
+
+# Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements-dev.txt
 
+# (Optional) Configure environment
+cp .env.example .env
+
+# Run server
 uvicorn app.main:app --reload
 ```
+Open **http://localhost:8000** in your browser.
 
-## Run tests and lint
+### 2. Run Tests & Linter
 
 ```bash
 pytest -v
 ruff check .
 ```
 
-## Run the full stack with Docker Compose
+### 3. Run Full Observability Stack with Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-| Service    | URL                    | Login         |
-|------------|------------------------|---------------|
-| API        | http://localhost:8000  |               |
-| Prometheus | http://localhost:9090  |               |
-| Grafana    | http://localhost:3000  | admin / admin |
+| Service        | URL                   | Credentials   |
+|----------------|-----------------------|---------------|
+| OpsPulse Web UI| http://localhost:8000 | (No login)    |
+| Prometheus     | http://localhost:9090 | (No login)    |
+| Grafana        | http://localhost:3000 | admin / admin |
 
-Open Grafana and go to **Dashboards → Todo App Overview**. Generate some traffic:
+---
 
-```bash
-for i in $(seq 1 50); do
-  curl -s -X POST localhost:8000/todos -H "Content-Type: application/json" \
-       -d "{\"title\": \"task $i\"}" > /dev/null
-  curl -s localhost:8000/todos > /dev/null
-done
-```
+## ☁️ 1-Click Cloud Deployment (Render)
 
-### Test the downtime alert
-
-```bash
-docker compose stop app
-```
-
-After about 30 seconds, open http://localhost:9090/alerts and you will see `AppDown` firing. Start it again with `docker compose start app`.
-
-> Alerts are visible in the Prometheus UI. To get Slack or email notifications, add an **Alertmanager** service (a good bonus feature).
-
-## CI/CD pipeline setup
-
-The workflow in `.github/workflows/ci-cd.yml` has three jobs:
-
-1. **test**: installs dependencies, runs `ruff` and `pytest` on every push and pull request.
-2. **build-and-push**: on pushes to `main` only, builds the Docker image and pushes it to Docker Hub tagged `latest` and with the commit SHA.
-3. **deploy** (optional): SSHes into a server, pulls the new image and restarts the container.
-
-### Required GitHub secrets
-
-Go to **Settings → Secrets and variables → Actions → Secrets** and add:
-
-| Secret               | Value                                                        |
-|----------------------|--------------------------------------------------------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username                                     |
-| `DOCKERHUB_TOKEN`    | A Docker Hub access token (Account Settings → Security)      |
-
-For the optional deploy job also add `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY`, then create a repository **variable** `DEPLOY_ENABLED` set to `true`.
-
-## Deploying to a server (AWS EC2 free tier or any VPS)
-
-1. Launch an Ubuntu instance and open ports 22 and 8000 in the security group.
-2. Install Docker: `curl -fsSL https://get.docker.com | sh`
-3. Add the SSH key and server details as GitHub secrets (above).
-4. Push to `main`. The pipeline tests, builds, pushes and deploys automatically.
-5. Visit `http://<server-ip>:8000/docs`.
-
-## Ideas to extend it (pick one for a standout bonus)
-
-- Replace the in-memory store with PostgreSQL (add it to docker-compose)
-- Add Alertmanager with Slack or email notifications
-- Provision the EC2 server with Terraform
-- Add a security scan step (Trivy) to the pipeline
-- Deploy to Kubernetes (minikube or kind) with a Deployment and Service manifest
-
-## What to be ready to explain in interviews
-
-- Difference between a Docker image and a container, and why the Dockerfile copies `requirements.txt` first (layer caching)
-- What each pipeline stage does and why the image is only pushed from `main`
-- What Prometheus scrapes, what a counter and a histogram are, and what p95 latency means
-- Why metrics use the route template (`/todos/{todo_id}`) and not the raw URL (label cardinality)
-- Why the container runs as a non-root user
+1. Connect your repository `sehxjbirsingh/Devops` to **[Render.com](https://render.com)**.
+2. Select **New +** ➔ **Blueprint**.
+3. Render automatically provisions the web service using `render.yaml` with zero manual configuration.
