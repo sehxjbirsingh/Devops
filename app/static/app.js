@@ -16,6 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation Tabs & Panels
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanels = document.querySelectorAll('.tab-panel');
+  const sidebar = document.getElementById('sidebar');
+  const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+  const topbarPageTitle = document.getElementById('topbar-page-title');
+
+  const tabTitles = {
+    'tab-tasks': 'Tasks & Issues',
+    'tab-probes': 'Website Monitor',
+    'tab-analytics': 'Live System Analytics',
+    'tab-traffic': 'Traffic Tester',
+    'tab-guide': 'Plain-English Guide & API Docs',
+    'tab-settings': 'Private Security Vault'
+  };
 
   // Task Manager Elements
   const todoForm = document.getElementById('todo-form');
@@ -137,10 +149,35 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Update Topbar Title
+    if (topbarPageTitle && tabTitles[tabId]) {
+      topbarPageTitle.textContent = tabTitles[tabId];
+    }
+
+    // Auto-close sidebar on mobile after clicking a tab
+    if (sidebar && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+    }
+
     // Auto-refresh when entering Analytics tab
     if (tabId === 'tab-analytics') {
       fetchAnalytics();
     }
+  }
+
+  // Mobile menu button toggle
+  if (btnToggleSidebar && sidebar) {
+    btnToggleSidebar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('open');
+    });
+
+    // Close when tapping outside sidebar on mobile
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btnToggleSidebar) {
+        sidebar.classList.remove('open');
+      }
+    });
   }
 
   tabButtons.forEach(btn => {

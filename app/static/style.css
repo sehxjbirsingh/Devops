@@ -74,76 +74,176 @@ body {
   background-attachment: fixed;
 }
 
-.app-layout {
-  min-height: 100vh;
+/* ==========================================================================
+   Dashboard Layout (Left Sidebar + Main Content)
+   ========================================================================== */
+.saas-layout {
   display: flex;
-  flex-direction: column;
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 1.75rem 1.25rem;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-app);
+  overflow-x: hidden;
 }
 
-/* ==========================================================================
-   Header & Brand
-   ========================================================================== */
-.top-nav {
-  display: flex;
+/* Mobile Header (Hidden by default on desktop) */
+.mobile-header {
+  display: none;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1.1rem 1.5rem;
+  padding: 0.9rem 1.25rem;
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  margin-bottom: 1.25rem;
-  box-shadow: var(--shadow-card);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 99;
 }
 
-.nav-brand {
+.btn-menu-icon {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-heading);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-menu-icon:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--green-emerald);
+}
+
+/* Left Sidebar Navigation */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-light);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.15rem;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  z-index: 100;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .logo-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   border-radius: var(--radius-md);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  flex-shrink: 0;
 }
 
 .brand-text h1 {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-heading);
 }
 
 .brand-text .subtext {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: var(--text-muted);
   font-weight: 600;
+  display: block;
+  white-space: nowrap;
 }
 
-.nav-controls {
+/* Sidebar Navigation Items */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.tab-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: stroke 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-heading);
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-light);
+}
+
+.tab-btn:hover svg {
+  stroke: var(--text-heading);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  border-color: transparent;
+}
+
+.tab-btn.active svg {
+  stroke: #ffffff;
+}
+
+/* Sidebar Footer (Status & Security Pill) */
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  margin-top: auto;
+  border-top: 1px solid var(--border-light);
 }
 
 /* Status Badge */
 .status-badge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-full);
   font-size: 0.8rem;
   font-weight: 700;
@@ -185,8 +285,9 @@ body {
 .nav-btn-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.85rem;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
   border-radius: var(--radius-full);
   font-family: inherit;
   font-size: 0.8rem;
@@ -205,54 +306,82 @@ body {
 }
 
 /* ==========================================================================
-   Navigation Tabs (Clean wrap without horizontal scrollbar)
+   Main Content Area & Topbar
    ========================================================================== */
-.main-tabs {
+.main-wrapper {
+  flex: 1;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 1.35rem;
+  justify-content: space-between;
+  padding: 1.15rem 2.25rem;
   background-color: var(--bg-surface);
-  padding: 0.45rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-subtle);
-  overflow: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
-.main-tabs::-webkit-scrollbar {
-  display: none;
+.topbar-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
-.tab-btn {
+.topbar-title-wrap h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+}
+
+.topbar-breadcrumb {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.topbar-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
+  gap: 0.65rem;
+}
+
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: none;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text-muted);
-  font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.tab-btn:hover {
-  color: var(--text-heading);
-  background-color: var(--bg-surface-hover);
+.topbar-link:hover {
+  color: var(--green-emerald);
+  border-color: var(--green-emerald);
+  background-color: var(--green-mint);
 }
 
-.tab-btn.active {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+.main-content {
+  flex: 1;
+  padding: 2rem 2.25rem;
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .tab-panel { display: none; }
@@ -1311,3 +1440,58 @@ body {
 }
 
 .app-footer p { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ==========================================================================
+   Responsive Breakpoints & Mobile Sidebar Support
+   ========================================================================== */
+@media (max-width: 900px) {
+  .saas-layout {
+    flex-direction: column;
+  }
+
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    bottom: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .topbar {
+    padding: 1rem 1.25rem;
+  }
+
+  .main-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
