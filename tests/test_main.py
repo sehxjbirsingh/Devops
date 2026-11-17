@@ -115,6 +115,16 @@ def test_export_data():
     assert len(data["todos"]) == 1
 
 
+def test_stats_endpoint():
+    client.post("/todos", json={"title": "Test task"})
+    response = client.get("/api/stats")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert "uptime_seconds" in data
+    assert data["total_tasks"] == 1
+
+
 def test_metrics_endpoint_exposes_request_counter():
     client.get("/health")
     response = client.get("/metrics")

@@ -28,6 +28,8 @@ from app.database import (
 )
 from app.models import ServiceProbe, ServiceProbeCreate, Todo, TodoCreate, TodoUpdate
 
+SERVER_START_TIME = time.time()
+TOTAL_PROCESSED_REQUESTS = 0
 
 # --- Lifespan for database initialization ---
 @asynccontextmanager
@@ -106,6 +108,9 @@ PROBE_STATUS = Gauge(
 @app.middleware("http")
 async def track_metrics_and_security(request: Request, call_next):
     """Enforce security response headers and track latency/request metrics."""
+    global TOTAL_PROCESSED_REQUESTS
+    TOTAL_PROCESSED_REQUESTS += 1
+
     start = time.perf_counter()
     response = await call_next(request)
     elapsed = time.perf_counter() - start
@@ -129,9 +134,45 @@ async def track_metrics_and_security(request: Request, call_next):
 
 # --- Core Endpoints ---
 @app.get("/", include_in_schema=False)
+@app.get("/analytics", include_in_schema=False)
+@app.get("/guide", include_in_schema=False)
+@app.get("/uptime", include_in_schema=False)
+@app.get("/settings", include_in_schema=False)
 def index() -> FileResponse:
     """Serve the single-page frontend application."""
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/api/stats")
+def get_system_stats() -> dict:
+    """Provide layman-friendly real-time system analytics and health summary."""
+    all_todos = list_todos()
+    all_probes = list_probes()
+    up_probes = [p for p in all_probes if p.get("status") == "UP"]
+    uptime_sec = round(time.time() - SERVER_START_TIME, 1)
+    hours, remainder = divmod(int(uptime_sec), 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return {
+        "status": "healthy",
+        "uptime_seconds": uptime_sec,
+        "uptime_formatted": f"{hours}h {minutes}m {seconds}s",
+        "total_requests": TOTAL_PROCESSED_REQUESTS,
+        "total_tasks": len(all_todos),
+        "completed_tasks": len([t for t in all_todos if t.get("done")]),
+        "active_tasks": len([t for t in all_todos if not t.get("done")]),
+        "critical_tasks": len([
+            t for t in all_todos
+            if not t.get("done") and t.get("priority") in ("P0", "P1")
+        ]),
+        "total_probes": len(all_probes),
+        "up_probes": len(up_probes),
+        "system_health": (
+            "All Systems Operational"
+            if (not all_probes or len(up_probes) == len(all_probes))
+            else "Partial Outage"
+        ),
+    }
 
 
 @app.get("/health")

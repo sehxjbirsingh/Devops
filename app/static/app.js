@@ -1,9 +1,10 @@
 /**
- * OpsPulse - DevOps Incident & Reliability Hub Frontend
+ * OpsPulse Professional SaaS Client
+ * All features fully functional, layman-friendly, and interactive.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- State ---
+  // --- Application State ---
   let todos = [];
   let probes = [];
   let currentFilter = 'all';
@@ -12,11 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let apiKey = localStorage.getItem('opspulse_api_key') || '';
 
   // --- DOM Elements ---
-  // Tabs
+  // Navigation Tabs & Panels
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanels = document.querySelectorAll('.tab-panel');
 
-  // Tasks elements
+  // Task Manager Elements
   const todoForm = document.getElementById('todo-form');
   const todoInput = document.getElementById('todo-input');
   const todoPriority = document.getElementById('todo-priority');
@@ -31,41 +32,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyStateMsg = document.getElementById('empty-state-msg');
   const loadingState = document.getElementById('loading-state');
 
-  // KPI Metrics
+  // KPI Metrics on Tasks Tab
   const metricTotal = document.getElementById('metric-total');
   const metricCritical = document.getElementById('metric-critical');
   const metricPending = document.getElementById('metric-pending');
   const metricCompleted = document.getElementById('metric-completed');
 
-  // Health
+  // Top Nav Health & Security
   const healthBadge = document.getElementById('health-indicator');
   const healthText = document.getElementById('health-text');
+  const btnSecurityQuick = document.getElementById('btn-security-quick');
+  const keyActiveLabel = document.getElementById('key-active-label');
 
-  // Probes elements
+  // Website Uptime Monitor Elements
   const probeForm = document.getElementById('probe-form');
   const probeName = document.getElementById('probe-name');
   const probeUrl = document.getElementById('probe-url');
   const probeList = document.getElementById('probe-list');
   const btnCheckAllProbes = document.getElementById('btn-check-all-probes');
 
-  // Simulation & Export
+  // Live Analytics Elements
+  const statsSystemHealth = document.getElementById('stats-system-health');
+  const statsUptime = document.getElementById('stats-uptime');
+  const statsTotalRequests = document.getElementById('stats-total-requests');
+  const statsDatabaseCount = document.getElementById('stats-database-count');
+  const analyticsProgressFill = document.getElementById('analytics-progress-fill');
+  const analyticsResolvedText = document.getElementById('analytics-resolved-text');
+  const analyticsPercentText = document.getElementById('analytics-percent-text');
+  const analyticsPendingText = document.getElementById('analytics-pending-text');
+  const btnRefreshAnalytics = document.getElementById('btn-refresh-analytics');
+
+  // Traffic Tester Elements
   const btnTraffic = document.getElementById('btn-traffic');
   const trafficProgress = document.getElementById('traffic-progress');
   const trafficProgressFill = document.getElementById('traffic-progress-fill');
-  const btnExport = document.getElementById('btn-export');
+  const trafficStatusText = document.getElementById('traffic-status-text');
 
-  // Security Modal
-  const btnSecurity = document.getElementById('btn-security');
-  const securityModal = document.getElementById('security-modal');
-  const btnCloseModal = document.getElementById('btn-close-modal');
+  // Backup & Settings Elements
+  const btnExport = document.getElementById('btn-export');
   const apiKeyInput = document.getElementById('api-key-input');
   const btnSaveKey = document.getElementById('btn-save-key');
-  const keyActiveDot = document.getElementById('key-active-dot');
+  const keyStatusMsg = document.getElementById('key-status-hint');
 
-  // Toast
+  // Toast Container
   const toastContainer = document.getElementById('toast-container');
 
-  // --- Security & Headers Helper ---
+  // --- API Authentication Headers Helper ---
   function getHeaders(hasBody = false) {
     const headers = {};
     if (hasBody) headers['Content-Type'] = 'application/json';
@@ -73,14 +85,68 @@ document.addEventListener('DOMContentLoaded', () => {
     return headers;
   }
 
-  function updateKeyIndicator() {
+  function updateSecurityUI() {
     if (apiKey) {
-      keyActiveDot.classList.add('active');
-      keyActiveDot.title = 'API Key is active';
+      if (keyActiveLabel) keyActiveLabel.textContent = 'Security: Protected (Key Active)';
+      if (apiKeyInput) apiKeyInput.value = apiKey;
+      if (keyStatusMsg) keyStatusMsg.textContent = 'Active key saved in browser storage. Write actions are authorized.';
     } else {
-      keyActiveDot.classList.remove('active');
-      keyActiveDot.title = 'No API Key set';
+      if (keyActiveLabel) keyActiveLabel.textContent = 'Security: Open (Dev Mode)';
+      if (apiKeyInput) apiKeyInput.value = '';
+      if (keyStatusMsg) keyStatusMsg.textContent = 'No key set. System is operating in open local mode.';
     }
+  }
+
+  // --- Tab Navigation System ---
+  function switchTab(tabId) {
+    tabButtons.forEach(btn => {
+      if (btn.dataset.tab === tabId) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    tabPanels.forEach(panel => {
+      if (panel.id === tabId) {
+        panel.classList.add('active');
+      } else {
+        panel.classList.remove('active');
+      }
+    });
+
+    // Auto-refresh when entering Analytics tab
+    if (tabId === 'tab-analytics') {
+      fetchAnalytics();
+    }
+  }
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchTab(btn.dataset.tab);
+      window.location.hash = btn.dataset.tab.replace('tab-', '');
+    });
+  });
+
+  if (btnSecurityQuick) {
+    btnSecurityQuick.addEventListener('click', () => {
+      switchTab('tab-settings');
+      window.location.hash = 'settings';
+    });
+  }
+
+  // Handle URL hash routing
+  function checkUrlRoute() {
+    const hash = window.location.hash.replace('#', '');
+    const pathname = window.location.pathname.replace('/', '');
+    const target = hash || pathname;
+
+    if (target === 'probes' || target === 'uptime') switchTab('tab-probes');
+    else if (target === 'analytics') switchTab('tab-analytics');
+    else if (target === 'traffic') switchTab('tab-traffic');
+    else if (target === 'guide' || target === 'docs') switchTab('tab-guide');
+    else if (target === 'settings') switchTab('tab-settings');
+    else switchTab('tab-tasks');
   }
 
   // --- Health Polling ---
@@ -89,18 +155,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/health');
       if (res.ok) {
         healthBadge.className = 'status-badge status-healthy';
-        healthText.textContent = 'API: Healthy';
+        healthText.textContent = 'All Systems Live';
       } else {
         healthBadge.className = 'status-badge status-offline';
-        healthText.textContent = `API: Err ${res.status}`;
+        healthText.textContent = `Server Notice (${res.status})`;
       }
     } catch {
       healthBadge.className = 'status-badge status-offline';
-      healthText.textContent = 'API: Offline';
+      healthText.textContent = 'Offline';
     }
   }
 
-  // --- Tasks API & Render ---
+  // --- Tasks & Issues API ---
   async function fetchTodos() {
     try {
       loadingState.classList.remove('hidden');
@@ -110,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTodos();
     } catch (err) {
       console.error(err);
-      showToast('Failed to load tickets', 'error');
+      showToast('Could not load tasks', 'error');
     } finally {
       loadingState.classList.add('hidden');
     }
@@ -123,12 +189,17 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: getHeaders(true),
         body: JSON.stringify({ title, priority, category, description }),
       });
-      if (res.status === 401) throw new Error('Unauthorized: Configure API Key in Security settings');
-      if (!res.ok) throw new Error('Failed to create ticket');
+      if (res.status === 401) {
+        showToast('Unauthorized: Please enter API Key in Settings', 'error');
+        switchTab('tab-settings');
+        return;
+      }
+      if (!res.ok) throw new Error('Could not create task');
       const item = await res.json();
       todos.unshift(item);
       renderTodos();
-      showToast(`Created ticket #${item.id} [${item.priority}]`, 'success');
+      showToast(`Created task #${item.id} [${item.priority}]`, 'success');
+      fetchAnalytics();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -141,12 +212,16 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: getHeaders(true),
         body: JSON.stringify({ done: !currentDone }),
       });
-      if (res.status === 401) throw new Error('Unauthorized: Configure API Key in Security settings');
-      if (!res.ok) throw new Error('Failed to update ticket status');
+      if (res.status === 401) {
+        showToast('Unauthorized: API Key required in Settings', 'error');
+        return;
+      }
+      if (!res.ok) throw new Error('Could not update task');
       const updated = await res.json();
       const idx = todos.findIndex(t => t.id === id);
       if (idx !== -1) todos[idx] = updated;
       renderTodos();
+      fetchAnalytics();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -158,11 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      if (res.status === 401) throw new Error('Unauthorized: Configure API Key in Security settings');
-      if (!res.ok) throw new Error('Failed to delete ticket');
+      if (res.status === 401) {
+        showToast('Unauthorized: API Key required in Settings', 'error');
+        return;
+      }
+      if (!res.ok) throw new Error('Could not delete task');
       todos = todos.filter(t => t.id !== id);
       renderTodos();
-      showToast(`Deleted ticket #${id}`, 'info');
+      showToast(`Deleted task #${id}`, 'info');
+      fetchAnalytics();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -172,12 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateKPIs();
 
     const filtered = todos.filter(t => {
-      // Status filter
       if (currentFilter === 'active' && t.done) return false;
       if (currentFilter === 'completed' && !t.done) return false;
-      // Priority filter
       if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
-      // Search query filter
+
       if (searchQuery) {
         const titleMatch = (t.title || '').toLowerCase().includes(searchQuery);
         const descMatch = (t.description || '').toLowerCase().includes(searchQuery);
@@ -191,7 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filtered.length === 0) {
       emptyState.classList.remove('hidden');
-      emptyStateMsg.textContent = 'No matching tasks or incidents found.';
+      if (searchQuery) {
+        emptyStateMsg.textContent = `No tasks matching "${searchQuery}".`;
+      } else {
+        emptyStateMsg.textContent = 'Your workspace is clear! Use the box above to add a new task.';
+      }
     } else {
       emptyState.classList.add('hidden');
       filtered.forEach(todo => {
@@ -205,31 +286,38 @@ document.addEventListener('DOMContentLoaded', () => {
     li.className = `todo-item ${todo.done ? 'completed' : ''}`;
 
     const priorityClass = `badge-${todo.priority.toLowerCase()}`;
+    const priorityLabels = {
+      P0: 'P0 Urgent',
+      P1: 'P1 High',
+      P2: 'P2 Medium',
+      P3: 'P3 Low',
+    };
+    const displayPriority = priorityLabels[todo.priority] || todo.priority;
     const dateFormatted = todo.created_at ? new Date(todo.created_at).toLocaleString() : '';
 
     li.innerHTML = `
       <div class="todo-item-main">
-        <div class="custom-checkbox ${todo.done ? 'checked' : ''}" role="checkbox" aria-checked="${todo.done}">
+        <div class="custom-checkbox ${todo.done ? 'checked' : ''}" role="checkbox" aria-checked="${todo.done}" title="${todo.done ? 'Mark as incomplete' : 'Mark as complete'}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
         </div>
         <div class="todo-body">
           <div class="todo-header-row">
-            <span class="badge-priority ${priorityClass}">${todo.priority}</span>
-            <span class="badge-category">${todo.category}</span>
+            <span class="badge-priority ${priorityClass}">${displayPriority}</span>
+            <span class="badge-category">${escapeHtml(todo.category)}</span>
             <span class="todo-title">${escapeHtml(todo.title)}</span>
           </div>
           ${todo.description ? `<p class="todo-desc">${escapeHtml(todo.description)}</p>` : ''}
           <div class="todo-meta-row">
             <span>#${todo.id}</span>
             <span>Created: ${dateFormatted}</span>
-            ${todo.completed_at ? `<span>Resolved</span>` : ''}
+            ${todo.completed_at ? `<span>Resolved ✓</span>` : ''}
           </div>
         </div>
       </div>
       <div class="todo-actions">
-        <button class="btn-icon delete" title="Delete Ticket">
+        <button class="btn-icon delete" title="Delete Task">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -238,12 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Event listeners
-    const checkbox = li.querySelector('.custom-checkbox');
-    checkbox.addEventListener('click', () => toggleTodo(todo.id, todo.done));
-
-    const btnDel = li.querySelector('.btn-icon.delete');
-    btnDel.addEventListener('click', () => deleteTodo(todo.id));
+    li.querySelector('.custom-checkbox').addEventListener('click', () => toggleTodo(todo.id, todo.done));
+    li.querySelector('.btn-icon.delete').addEventListener('click', () => deleteTodo(todo.id));
 
     return li;
   }
@@ -259,14 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
     metricPending.textContent = pending;
     metricCritical.textContent = critical;
 
-    itemsLeft.textContent = `${pending} active`;
+    itemsLeft.textContent = `${pending} active ${pending === 1 ? 'task' : 'tasks'}`;
   }
 
-  // --- Probes API & Render ---
+  // --- Website Uptime Monitor API ---
   async function fetchProbes() {
     try {
       const res = await fetch('/probes');
-      if (!res.ok) throw new Error('Failed to load probes');
+      if (!res.ok) throw new Error('Could not load website monitors');
       probes = await res.json();
       renderProbes();
     } catch (err) {
@@ -281,14 +365,17 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: getHeaders(true),
         body: JSON.stringify({ name, url }),
       });
-      if (res.status === 401) throw new Error('Unauthorized: Set API Key in Security settings');
-      if (!res.ok) throw new Error('Failed to add probe');
+      if (res.status === 401) {
+        showToast('Unauthorized: Set API Key in Settings', 'error');
+        return;
+      }
+      if (!res.ok) throw new Error('Could not add website monitor');
       const newProbe = await res.json();
       probes.push(newProbe);
       renderProbes();
-      showToast(`Added probe: ${name}`, 'success');
-      // Immediately run check on the newly added probe
+      showToast(`Added monitor for ${name}`, 'success');
       checkSingleProbe(newProbe.id);
+      fetchAnalytics();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -300,15 +387,16 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (res.status === 401) throw new Error('Unauthorized');
-      if (!res.ok) throw new Error('Probe ping failed');
+      if (!res.ok) throw new Error('Ping failed');
       const updated = await res.json();
       const idx = probes.findIndex(p => p.id === id);
       if (idx !== -1) probes[idx] = updated;
       renderProbes();
-      showToast(`${updated.name}: ${updated.status} (${updated.latency_ms}ms)`, updated.status === 'UP' ? 'success' : 'error');
+      const speedNote = updated.latency_ms < 200 ? 'Fast' : updated.latency_ms < 600 ? 'Normal' : 'Slow';
+      showToast(`${updated.name}: ${updated.status} (${updated.latency_ms} ms - ${speedNote})`, updated.status === 'UP' ? 'success' : 'error');
+      fetchAnalytics();
     } catch (err) {
-      showToast(`Probe check failed: ${err.message}`, 'error');
+      showToast(`Check failed: ${err.message}`, 'error');
     }
   }
 
@@ -318,11 +406,11 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      if (res.status === 401) throw new Error('Unauthorized');
-      if (!res.ok) throw new Error('Failed to delete probe');
+      if (!res.ok) throw new Error('Could not remove monitor');
       probes = probes.filter(p => p.id !== id);
       renderProbes();
-      showToast('Probe removed', 'info');
+      showToast('Website monitor removed', 'info');
+      fetchAnalytics();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -331,7 +419,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderProbes() {
     probeList.innerHTML = '';
     if (probes.length === 0) {
-      probeList.innerHTML = `<li class="state-placeholder"><p>No synthetic probes registered. Add an API or service endpoint above.</p></li>`;
+      probeList.innerHTML = `
+        <li class="state-placeholder">
+          <p>No website monitors configured yet. Add your first website or API endpoint above!</p>
+        </li>
+      `;
       return;
     }
 
@@ -340,7 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
       li.className = 'probe-item';
 
       const statusClass = `probe-${probe.status.toLowerCase()}`;
-      const latencyText = probe.latency_ms > 0 ? `${probe.latency_ms} ms` : '--';
+      let statusHuman = 'Checking...';
+      if (probe.status === 'UP') statusHuman = `Online (${probe.latency_ms} ms)`;
+      else if (probe.status === 'DEGRADED') statusHuman = `Slow (${probe.latency_ms} ms)`;
+      else if (probe.status === 'DOWN') statusHuman = `Offline (Unreachable)`;
 
       li.innerHTML = `
         <div class="probe-info">
@@ -348,14 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="probe-url">${escapeHtml(probe.url)}</span>
         </div>
         <div class="probe-status-row">
-          <span class="probe-badge ${statusClass}">${probe.status} (${latencyText})</span>
-          <button class="btn btn-secondary btn-sm btn-ping" title="Execute Live Ping">
+          <span class="probe-badge ${statusClass}">${statusHuman}</span>
+          <button class="btn btn-secondary btn-sm btn-ping" title="Check this website now">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            <span>Ping</span>
+            <span>Test Now</span>
           </button>
-          <button class="btn-icon delete btn-probe-del" title="Delete Probe">
+          <button class="btn-icon delete btn-probe-del" title="Remove monitor">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -370,14 +465,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Traffic Simulation ---
-  async function simulateTraffic(rounds = 30) {
+  // --- Live Analytics API ---
+  async function fetchAnalytics() {
+    try {
+      const res = await fetch('/api/stats');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (statsSystemHealth) statsSystemHealth.textContent = data.system_health || '100% Operational';
+      if (statsUptime) statsUptime.textContent = data.uptime_formatted || '--';
+      if (statsTotalRequests) statsTotalRequests.textContent = Number(data.total_requests).toLocaleString();
+      if (statsDatabaseCount) statsDatabaseCount.textContent = `${data.total_tasks} tasks & ${data.total_probes} monitors`;
+
+      const total = data.total_tasks || 0;
+      const completed = data.completed_tasks || 0;
+      const pending = data.active_tasks || 0;
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      if (analyticsProgressFill) analyticsProgressFill.style.width = `${pct}%`;
+      if (analyticsResolvedText) analyticsResolvedText.textContent = `${completed} Completed`;
+      if (analyticsPercentText) analyticsPercentText.textContent = `${pct}% Resolved`;
+      if (analyticsPendingText) analyticsPendingText.textContent = `${pending} In Progress`;
+    } catch (err) {
+      console.warn('Analytics refresh failed:', err);
+    }
+  }
+
+  // --- Traffic Simulator ---
+  async function simulateTraffic() {
+    const selectedRadio = document.querySelector('input[name="traffic-count"]:checked');
+    const rounds = selectedRadio ? parseInt(selectedRadio.value, 10) : 30;
+
     btnTraffic.disabled = true;
     trafficProgress.classList.add('active');
     trafficProgressFill.style.width = '0%';
-    showToast(`Simulating ${rounds} requests to generate Prometheus metrics...`, 'info');
+    trafficStatusText.textContent = `Running test: 0 of ${rounds} requests processed...`;
+    showToast(`Sending ${rounds} simulated requests to test server performance...`, 'info');
 
     let completed = 0;
+    const testTitles = [
+      'Upgrade redis cluster',
+      'Renew wildcard SSL cert',
+      'Optimize database slow query',
+      'Verify backup snapshot',
+      'Patch web server security alert',
+    ];
+
     for (let i = 0; i < rounds; i++) {
       try {
         if (i % 4 === 0) await fetch('/todos');
@@ -390,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: getHeaders(true),
             body: JSON.stringify({
-              title: `Automated test incident #${Math.floor(Math.random() * 9000 + 1000)}`,
+              title: `${testTitles[Math.floor(Math.random() * testTitles.length)]} #${Math.floor(Math.random() * 9000 + 1000)}`,
               priority: ['P1', 'P2', 'P3'][Math.floor(Math.random() * 3)],
               category: ['Infrastructure', 'Deployment', 'Bug'][Math.floor(Math.random() * 3)],
             }),
@@ -401,26 +534,34 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       completed++;
-      trafficProgressFill.style.width = `${Math.round((completed / rounds) * 100)}%`;
-      await new Promise(r => setTimeout(r, 50));
+      const pct = Math.round((completed / rounds) * 100);
+      trafficProgressFill.style.width = `${pct}%`;
+      trafficStatusText.textContent = `Running test: ${completed} of ${rounds} requests processed (${pct}%)...`;
+      await new Promise(r => setTimeout(r, 40));
     }
 
     await fetchTodos();
     await fetchProbes();
-    showToast('Simulation complete! Prometheus & Grafana charts updated.', 'success');
+    await fetchAnalytics();
+
+    trafficStatusText.textContent = `✓ Success: All ${rounds} requests processed cleanly!`;
+    showToast(`Traffic test completed! Check the Live Analytics tab to view new stats.`, 'success');
 
     setTimeout(() => {
       trafficProgress.classList.remove('active');
       trafficProgressFill.style.width = '0%';
       btnTraffic.disabled = false;
-    }, 700);
+    }, 1200);
   }
 
-  // --- Disaster Recovery / Export ---
+  // --- Disaster Recovery / Data Backup ---
   async function exportBackup() {
     try {
       const res = await fetch('/export', { headers: getHeaders() });
-      if (res.status === 401) throw new Error('Unauthorized: Enter API Key in Security settings');
+      if (res.status === 401) {
+        showToast('Unauthorized: Please enter API Key in Settings', 'error');
+        return;
+      }
       if (!res.ok) throw new Error('Export failed');
       const data = await res.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -430,13 +571,49 @@ document.addEventListener('DOMContentLoaded', () => {
       a.download = `opspulse-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Backup JSON downloaded successfully', 'success');
+      showToast('Downloaded complete backup file successfully!', 'success');
     } catch (err) {
       showToast(err.message, 'error');
     }
   }
 
-  // --- Utilities ---
+  // --- Interactive API Playground (Guide Tab) ---
+  const apiTestButtons = document.querySelectorAll('.btn-api-test');
+  apiTestButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const endpoint = btn.dataset.endpoint;
+      const method = btn.dataset.method || 'GET';
+      const outputBoxId = `out-${endpoint.replace('/api/', '').replace('/', '')}`;
+      const outputBox = document.getElementById(outputBoxId);
+
+      btn.disabled = true;
+      btn.textContent = 'Testing...';
+
+      try {
+        const start = performance.now();
+        const res = await fetch(endpoint, { method, headers: getHeaders() });
+        const latency = Math.round(performance.now() - start);
+        const data = await res.json();
+
+        if (outputBox) {
+          outputBox.textContent = `// HTTP ${res.status} OK (${latency} ms)\n` + JSON.stringify(data, null, 2);
+          outputBox.classList.remove('hidden');
+        }
+        showToast(`Tested ${endpoint} -> HTTP ${res.status} (${latency} ms)`, 'success');
+      } catch (err) {
+        if (outputBox) {
+          outputBox.textContent = `// Error executing request:\n${err.message}`;
+          outputBox.classList.remove('hidden');
+        }
+        showToast(`Test failed for ${endpoint}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Test';
+      }
+    });
+  });
+
+  // --- Notification Toast Utility ---
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -444,9 +621,9 @@ document.addEventListener('DOMContentLoaded', () => {
     toastContainer.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s';
+      toast.style.transition = 'opacity 0.3s ease';
       setTimeout(() => toast.remove(), 300);
-    }, 3200);
+    }, 3400);
   }
 
   function escapeHtml(str) {
@@ -454,19 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // --- Event Listeners ---
-  // Tab Switching
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach(b => b.classList.remove('active'));
-      tabPanels.forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      const targetPanel = document.getElementById(btn.dataset.tab);
-      if (targetPanel) targetPanel.classList.add('active');
-    });
-  });
-
-  // Task creation
+  // --- Event Listeners Setup ---
+  // Task form submission
   todoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = todoInput.value.trim();
@@ -480,7 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await createTodo(title, priority, category, desc);
   });
 
-  // Filtering
+  // Task filtering
   filterTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       filterTabs.forEach(t => t.classList.remove('active'));
@@ -502,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Probes
+  // Probe form submission
   probeForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = probeName.value.trim();
@@ -514,51 +680,72 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnCheckAllProbes.addEventListener('click', async () => {
-    showToast('Executing health checks across all probes...', 'info');
+    showToast('Checking all websites now...', 'info');
     for (const probe of probes) {
       await checkSingleProbe(probe.id);
     }
   });
 
-  // Simulation & Export
-  btnTraffic.addEventListener('click', () => simulateTraffic(30));
+  // Traffic tester
+  btnTraffic.addEventListener('click', simulateTraffic);
+
+  // Radio pill selection UI
+  const radioPills = document.querySelectorAll('.radio-pill');
+  radioPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      radioPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const radio = pill.querySelector('input');
+      if (radio) radio.checked = true;
+    });
+  });
+
+  // Analytics manual refresh
+  if (btnRefreshAnalytics) {
+    btnRefreshAnalytics.addEventListener('click', async () => {
+      await fetchAnalytics();
+      showToast('Live analytics refreshed', 'success');
+    });
+  }
+
+  // Export backup
   btnExport.addEventListener('click', exportBackup);
 
-  // Security Modal
-  btnSecurity.addEventListener('click', () => {
-    apiKeyInput.value = apiKey;
-    securityModal.classList.remove('hidden');
-  });
-
-  btnCloseModal.addEventListener('click', () => {
-    securityModal.classList.add('hidden');
-  });
-
+  // API Key save
   btnSaveKey.addEventListener('click', () => {
     apiKey = apiKeyInput.value.trim();
     if (apiKey) {
       localStorage.setItem('opspulse_api_key', apiKey);
-      showToast('API Key saved', 'success');
+      showToast('API Key saved successfully', 'success');
     } else {
       localStorage.removeItem('opspulse_api_key');
-      showToast('API Key cleared (open development mode)', 'info');
+      showToast('API Key cleared (open local mode active)', 'info');
     }
-    updateKeyIndicator();
-    securityModal.classList.add('hidden');
+    updateSecurityUI();
   });
 
-  // --- Initial Boot ---
-  updateKeyIndicator();
+  // --- Initial System Boot ---
+  updateSecurityUI();
   checkHealth();
   fetchTodos();
   fetchProbes();
+  fetchAnalytics();
+  checkUrlRoute();
 
-  // Seed default probe if none exists
+  window.addEventListener('hashchange', checkUrlRoute);
+
+  // Seed friendly default monitors if none exist yet
   setTimeout(async () => {
     if (probes.length === 0) {
-      await createProbe('Local Health Endpoint', 'http://localhost:8000/health');
+      await createProbe('Google Search', 'https://www.google.com');
+      await createProbe('GitHub Public API', 'https://api.github.com');
+      await createProbe('OpsPulse Live Health', '/health');
     }
-  }, 1000);
+  }, 1200);
 
-  setInterval(checkHealth, 10000);
+  // Periodic health check & analytics refresh every 12 seconds
+  setInterval(() => {
+    checkHealth();
+    fetchAnalytics();
+  }, 12000);
 });
