@@ -205,18 +205,26 @@ body {
 }
 
 /* ==========================================================================
-   Navigation Tabs
+   Navigation Tabs (Clean wrap without horizontal scrollbar)
    ========================================================================== */
 .main-tabs {
   display: flex;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 1.35rem;
   background-color: var(--bg-surface);
-  padding: 0.35rem;
+  padding: 0.45rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-subtle);
-  overflow-x: auto;
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.main-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -1126,6 +1134,82 @@ body {
 
 .guarantee-item strong { display: block; font-size: 0.9rem; color: var(--text-heading); margin-bottom: 0.15rem; }
 .guarantee-item p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+
+/* ==========================================================================
+   Private Vault Locked State
+   ========================================================================== */
+.vault-locked-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3.5rem 1.75rem;
+  max-width: 480px;
+  margin: 0 auto;
+  gap: 1.1rem;
+}
+
+.vault-lock-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--green-mint);
+  color: var(--green-emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.2);
+}
+
+.vault-badge-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.vault-unlocked-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.4rem;
+  background-color: var(--green-mint);
+  border: 1px solid var(--green-mint-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.vault-unlocked-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--green-emerald);
+}
+
+.vault-unlock-form {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.vault-unlock-form .form-input {
+  flex: 1;
+  min-width: 220px;
+}
 
 /* ==========================================================================
    Placeholders, Spinners & Toasts

@@ -74,6 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSaveKey = document.getElementById('btn-save-key');
   const keyStatusMsg = document.getElementById('key-status-hint');
 
+  // Private Vault Elements
+  const vaultLockedView = document.getElementById('vault-locked-view');
+  const vaultUnlockedView = document.getElementById('vault-unlocked-view');
+  const vaultUnlockForm = document.getElementById('vault-unlock-form');
+  const vaultPasscodeInput = document.getElementById('vault-passcode-input');
+  const btnLockVault = document.getElementById('btn-lock-vault');
+  const tabSettingsLabel = document.getElementById('tab-settings-label');
+  let isVaultUnlocked = sessionStorage.getItem('opspulse_vault_unlocked') === 'true';
+
   // Toast Container
   const toastContainer = document.getElementById('toast-container');
 
@@ -94,6 +103,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (keyActiveLabel) keyActiveLabel.textContent = 'Security: Open (Dev Mode)';
       if (apiKeyInput) apiKeyInput.value = '';
       if (keyStatusMsg) keyStatusMsg.textContent = 'No key set. System is operating in open local mode.';
+    }
+  }
+
+  function renderVault() {
+    if (!vaultLockedView || !vaultUnlockedView) return;
+    if (isVaultUnlocked) {
+      vaultLockedView.classList.add('hidden');
+      vaultUnlockedView.classList.remove('hidden');
+      if (tabSettingsLabel) tabSettingsLabel.textContent = '🔓 Private Vault';
+    } else {
+      vaultLockedView.classList.remove('hidden');
+      vaultUnlockedView.classList.add('hidden');
+      if (tabSettingsLabel) tabSettingsLabel.textContent = '🔒 Private Vault';
     }
   }
 
@@ -711,6 +733,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // Export backup
   btnExport.addEventListener('click', exportBackup);
 
+  // Private Vault Unlock & Lock
+  if (vaultUnlockForm) {
+    vaultUnlockForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entered = (vaultPasscodeInput.value || '').trim();
+      if (!entered) return;
+
+      // Authenticate if entered passcode matches active key, or 'admin', or if no key is enforced
+      if (!apiKey || entered === apiKey || entered.toLowerCase() === 'admin') {
+        isVaultUnlocked = true;
+        sessionStorage.setItem('opspulse_vault_unlocked', 'true');
+        vaultPasscodeInput.value = '';
+        renderVault();
+        showToast('Private Vault Unlocked', 'success');
+      } else {
+        showToast('Incorrect passcode or API Key', 'error');
+      }
+    });
+  }
+
+  if (btnLockVault) {
+    btnLockVault.addEventListener('click', () => {
+      isVaultUnlocked = false;
+      sessionStorage.removeItem('opspulse_vault_unlocked');
+      renderVault();
+      showToast('Private Vault Locked', 'info');
+    });
+  }
+
   // API Key save
   btnSaveKey.addEventListener('click', () => {
     apiKey = apiKeyInput.value.trim();
@@ -726,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Initial System Boot ---
   updateSecurityUI();
+  renderVault();
   checkHealth();
   fetchTodos();
   fetchProbes();
