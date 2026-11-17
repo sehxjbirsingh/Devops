@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let probes = [];
   let currentFilter = 'all';
   let priorityFilter = 'all';
+  let searchQuery = '';
   let apiKey = localStorage.getItem('opspulse_api_key') || '';
 
   // --- DOM Elements ---
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const todoList = document.getElementById('todo-list');
   const filterTabs = document.querySelectorAll('.filter-tab');
   const filterPrioritySelect = document.getElementById('filter-priority-select');
+  const taskSearchInput = document.getElementById('task-search-input');
   const itemsLeft = document.getElementById('items-left');
   const emptyState = document.getElementById('empty-state');
   const emptyStateMsg = document.getElementById('empty-state-msg');
@@ -175,6 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentFilter === 'completed' && !t.done) return false;
       // Priority filter
       if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+      // Search query filter
+      if (searchQuery) {
+        const titleMatch = (t.title || '').toLowerCase().includes(searchQuery);
+        const descMatch = (t.description || '').toLowerCase().includes(searchQuery);
+        const catMatch = (t.category || '').toLowerCase().includes(searchQuery);
+        if (!titleMatch && !descMatch && !catMatch) return false;
+      }
       return true;
     });
 
@@ -485,6 +494,13 @@ document.addEventListener('DOMContentLoaded', () => {
     priorityFilter = filterPrioritySelect.value;
     renderTodos();
   });
+
+  if (taskSearchInput) {
+    taskSearchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      renderTodos();
+    });
+  }
 
   // Probes
   probeForm.addEventListener('submit', async (e) => {
