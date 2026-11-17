@@ -1,13 +1,19 @@
 """Todo API with health check and Prometheus metrics."""
 
 import time
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Todo API", version="1.0.0")
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # --- Prometheus metrics -----------------------------------------------------
 REQUEST_COUNT = Counter(
@@ -69,6 +75,12 @@ def reset_store() -> None:
 
 
 # --- Endpoints ----------------------------------------------------------------
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    """Serve the frontend single page application."""
+    return FileResponse(STATIC_DIR / "index.html")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}

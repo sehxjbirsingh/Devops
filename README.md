@@ -24,7 +24,12 @@ A small Todo REST API built with **FastAPI**, packaged with **Docker**, monitore
 
 ```
 .
-├── app/main.py                  # FastAPI app, /health and /metrics endpoints
+├── app/
+│   ├── main.py                  # FastAPI app, /health and /metrics endpoints
+│   └── static/                  # Responsive web frontend UI (HTML, CSS, JS)
+│       ├── index.html
+│       ├── style.css
+│       └── app.js
 ├── tests/test_main.py           # pytest tests
 ├── Dockerfile                   # production image (non-root, healthcheck)
 ├── docker-compose.yml           # app + Prometheus + Grafana
@@ -34,11 +39,12 @@ A small Todo REST API built with **FastAPI**, packaged with **Docker**, monitore
 └── .github/workflows/ci-cd.yml  # CI/CD pipeline
 ```
 
-## API endpoints
+## API & UI endpoints
 
-| Method | Path          | Description            |
-|--------|---------------|------------------------|
-| GET    | `/health`     | Health check           |
+| Method | Path          | Description                    |
+|--------|---------------|--------------------------------|
+| GET    | `/`           | Web Frontend (Single Page App) |
+| GET    | `/health`     | Health check                   |
 | GET    | `/metrics`    | Prometheus metrics     |
 | POST   | `/todos`      | Create a todo          |
 | GET    | `/todos`      | List todos             |

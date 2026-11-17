@@ -19,6 +19,13 @@ def test_health():
     assert response.json() == {"status": "ok"}
 
 
+def test_index_serves_html():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "DevOps Todo" in response.text
+
+
 def test_create_and_get_todo():
     created = client.post("/todos", json={"title": "Learn Docker"})
     assert created.status_code == 201
