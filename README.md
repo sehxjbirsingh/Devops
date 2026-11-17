@@ -1,5 +1,10 @@
 # OpsPulse: DevOps Incident & Reliability Command Center
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-opspulse-059669?style=flat&logo=render)](https://opspulse-6y4o.onrender.com)
+
+**Live Production URL:** 🔗 **[https://opspulse-6y4o.onrender.com](https://opspulse-6y4o.onrender.com)**
+
 A production-ready **Incident Management, SRE Health Prober & Observability Platform** built with **FastAPI**, **SQLite WAL persistence**, **Prometheus & Grafana**, packaged with **Docker**, and shipped through a **GitHub Actions CI/CD** pipeline.
 
 ---
